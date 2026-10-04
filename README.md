@@ -116,3 +116,16 @@ Open:
 `http://127.0.0.1:5000`
 
 The application provides a web interface for dataset analysis, machine learning prediction, classification, and regression.
+## Application Screenshots
+
+### Prediction Input
+
+The prediction module accepts vehicle, network, and road parameters to generate route and vehicle-spacing predictions.
+
+![Prediction Input](screenshots/prediction-input.png)
+
+### Prediction Output
+
+The system displays classification results from multiple machine learning models and the predicted vehicle spacing.
+
+![Prediction Output](screenshots/prediction-output.png)
