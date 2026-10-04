@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+
+{% block title %}Classification - VANET Routing Analysis{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-2">
+                        <i class="fas fa-sitemap text-primary me-2"></i>Classification Performance
+                    </h1>
+                    <p class="text-muted">Predicting optimal route choices using machine learning algorithms</p>
+                </div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
+                        <li class="breadcrumb-item active">Classification</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Model Selection Form -->
+    {% if available_models %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cogs me-2"></i>Model Selection
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('classification') }}">
+                        <p class="text-muted mb-3">Select the models you want to train and evaluate:</p>
+                        
+                        <div class="row">
+                            {% for model in available_models %}
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="selected_models" 
+                                           value="{{ model }}" id="{{ model.replace(' ', '_') }}"
+                                           {% if not selected_models or model in selected_models %}checked{% endif %}>
+                                    <label class="form-check-label" for="{{ model.replace(' ', '_') }}">
+                                        <strong>{{ model }}</strong>
+                                        {% if model == 'KNN Classifier' %}
+                                        <br><small class="text-muted">K-Nearest Neighbors</small>
+                                        {% elif model == 'SGD Classifier' %}
+                                        <br><small class="text-muted">Stochastic Gradient Descent</small>
+                                        {% elif model == 'GP Classifier' %}
+                                        <br><small class="text-muted">Gaussian Process</small>
+                                        {% elif model == 'MLP + Random Forest' %}
+                                        <br><small class="text-muted">Hybrid approach</small>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-play me-1"></i>Train Selected Models
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="selectAll()">
+                                <i class="fas fa-check-square me-1"></i>Select All
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="deselectAll()">
+                                <i class="fas fa-square me-1"></i>Deselect All
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if results %}
+    <!-- Model Performance Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-success d-flex align-items-center">
+                <i class="fas fa-check-circle me-2"></i>
+                <div>
+                    <strong>Models Trained Successfully!</strong> {{ results.keys()|length }} classification models have been trained and evaluated.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Comparison Chart -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Model Performance Comparison
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='plots/classification_comparison.png') }}" 
+                         class="img-fluid rounded shadow-sm" 
+                         alt="Classification Performance Comparison"
+                         style="max-width: 100%; height: auto;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics Table -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-table me-2"></i>Detailed Performance Metrics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Algorithm</th>
+                                    <th>Accuracy (%)</th>
+                                    <th>Precision (%)</th>
+                                    <th>Recall (%)</th>
+                                    <th>F1-Score (%)</th>
+                                    {% if results[results.keys()|first].get('auc') %}<th>AUC</th>{% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for model_name, metrics in results.items() %}
+                                {% if 'error' not in metrics %}
+                                <tr>
+                                    <td class="fw-bold">{{ model_name }}</td>
+                                    <td>
+                                        <span class="badge bg-success">{{ "%.2f"|format(metrics.accuracy) }}%</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ "%.2f"|format(metrics.precision) }}%</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">{{ "%.2f"|format(metrics.recall) }}%</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ "%.2f"|format(metrics.f1_score) }}%</span>
+                                    </td>
+                                    {% if metrics.get('auc') %}
+                                    <td>
+                                        <span class="badge bg-secondary">{{ "%.3f"|format(metrics.auc) }}</span>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Individual Model Results -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="h4 mb-4">
+                <i class="fas fa-microscope me-2 text-success"></i>Individual Model Analysis
+            </h3>
+            
+            <div class="row">
+                {% for model_name, metrics in results.items() %}
+                {% if 'error' not in metrics %}
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-light">
+                            <h6 class="card-title mb-0 fw-bold">{{ model_name }}</h6>
+                        </div>
+                        <div class="card-body">
+                            <!-- Performance Metrics -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Accuracy</small>
+                                    <div class="fw-bold text-success">{{ "%.2f"|format(metrics.accuracy) }}%</div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">F1-Score</small>
+                                    <div class="fw-bold text-primary">{{ "%.2f"|format(metrics.f1_score) }}%</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Confusion Matrix -->
+                            <div class="text-center mb-3">
+                                <img src="{{ url_for('static', filename='plots/' + model_name.replace(' ', '_') + '_confusion_matrix.png') }}" 
+                                     class="img-fluid rounded" 
+                                     alt="{{ model_name }} Confusion Matrix"
+                                     style="max-height: 250px;">
+                            </div>
+                            
+                            <!-- ROC Curve if available -->
+                            {% if metrics.get('auc') %}
+                            <div class="text-center">
+                                <img src="{{ url_for('static', filename='plots/' + model_name.replace(' ', '_') + '_roc_curve.png') }}" 
+                                     class="img-fluid rounded" 
+                                     alt="{{ model_name }} ROC Curve"
+                                     style="max-height: 200px;">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Data Predictions -->
+    {% if test_predictions %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-crystal-ball me-2"></i>Test Data Predictions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">Predictions on test dataset using trained models:</p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Sample #</th>
+                                    {% for model_name in test_predictions.keys() %}
+                                    <th>{{ model_name }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in range(test_predictions[test_predictions.keys()|first]|length) %}
+                                <tr>
+                                    <td class="fw-bold">{{ i + 1 }}</td>
+                                    {% for model_name, predictions in test_predictions.items() %}
+                                    <td>
+                                        {% if predictions[i] == 'Optimal' %}
+                                        <span class="badge bg-success">{{ predictions[i] }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ predictions[i] }}</span>
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if test_predictions[test_predictions.keys()|first]|length > 10 %}
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Showing first 10 predictions. Total predictions: {{ test_predictions[test_predictions.keys()|first]|length }}
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Model Insights -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Model Insights
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6 class="fw-bold text-primary">Best Performing Model</h6>
+                            {% set best_model = results.items()|selectattr('1.accuracy')|max(attribute='1.accuracy') %}
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-trophy text-warning me-2"></i>
+                                <span class="fw-bold">{{ best_model[0] }}</span>
+                            </div>
+                            <small class="text-muted">Accuracy: {{ "%.2f"|format(best_model[1].accuracy) }}%</small>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="fw-bold text-primary">Balanced Performance</h6>
+                            <p class="small text-muted">
+                                Models show varying performance across different metrics. Consider F1-score for balanced evaluation.
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="fw-bold text-primary">Model Selection</h6>
+                            <p class="small text-muted">
+                                Choose models based on your specific requirements: accuracy vs. interpretability vs. speed.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Error State -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="display-6 text-muted mb-3">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h5 class="card-title">Classification Models Not Available</h5>
+                    <p class="card-text text-muted">
+                        Models could not be trained. Please ensure the data is properly processed by visiting the EDA section first.
+                    </p>
+                    <a href="{{ url_for('eda') }}" class="btn btn-info me-2">
+                        <i class="fas fa-chart-bar me-1"></i>Process Data First
+                    </a>
+                    <a href="{{ url_for('home') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-home me-1"></i>Return to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Navigation -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-primary">
+                        <i class="fas fa-arrow-right me-2"></i>Continue Analysis
+                    </h5>
+                    <p class="card-text text-muted">
+                        Explore regression models to predict vehicle spacing or return to data exploration.
+                    </p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="{{ url_for('eda') }}" class="btn btn-outline-info">
+                            <i class="fas fa-chart-bar me-1"></i>Back to EDA
+                        </a>
+                        <a href="{{ url_for('regression') }}" class="btn btn-success">
+                            <i class="fas fa-chart-line me-1"></i>Regression Analysis
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handlers for image zoom
+    const images = document.querySelectorAll('.card-body img');
+    images.forEach(img => {
+        img.style.cursor = 'pointer';
+        img.addEventListener('click', function() {
+            window.open(this.src, '_blank');
+        });
+    });
+    
+    // Add tooltip for performance metrics
+    const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltips.forEach(tooltip => {
+        new bootstrap.Tooltip(tooltip);
+    });
+});
+
+// Model selection functions
+function selectAll() {
+    const checkboxes = document.querySelectorAll('input[name="selected_models"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+}
+
+function deselectAll() {
+    const checkboxes = document.querySelectorAll('input[name="selected_models"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+</script>
+{% endblock %}
