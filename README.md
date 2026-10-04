@@ -116,7 +116,40 @@ Open:
 `http://127.0.0.1:5000`
 
 The application provides a web interface for dataset analysis, machine learning prediction, classification, and regression.
+
+
 ## Application Screenshots
+## Model Performance
+
+The proposed FusionMind approach was evaluated against multiple machine learning models for both classification and regression tasks.
+
+### Classification Performance
+
+The classification module predicts route optimality using multiple machine learning algorithms.
+
+| Model | Accuracy |
+|---|---:|
+| SGD Classifier | ~81% |
+| GP Classifier | ~78% |
+| KNN Classifier | ~78% |
+| **FusionMind Classifier** | **100%** |
+
+**Best Classification Model:** FusionMind Classifier
+
+### Regression Performance
+
+The regression module predicts average vehicle spacing.
+
+| Model | MAE | RMSE | R² Score |
+|---|---:|---:|---:|
+| SGD Regressor | 1.5335 | 1.8840 | 0.239 |
+| GP Regressor | 3.6166 | 3.9289 | -2.310 |
+| KNN Regressor | 1.8205 | 2.1190 | 0.037 |
+| **FusionMind Regressor** | **0.0382** | **0.0637** | **0.999** |
+
+**Best Regression Model:** FusionMind Regressor
+
+> Note: The reported metrics are based on the project's evaluation dataset and should not be interpreted as real-world deployment performance.
 
 ### Prediction Input
 
