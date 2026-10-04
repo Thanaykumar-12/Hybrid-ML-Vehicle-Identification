@@ -91,3 +91,28 @@ Hybrid-ML-Vehicle-Identification/
 ├── testdata.csv
 ├── vanet_routing_dataset.csv
 └── sys.png
+
+```
+## 🚀 How to Run
+
+### 1. Clone the Repository
+
+`git clone https://github.com/Thanaykumar-12/Hybrid-ML-Vehicle-Identification.git`
+
+`cd Hybrid-ML-Vehicle-Identification`
+
+### 2. Install Dependencies
+
+`pip install -r requirements.txt`
+
+### 3. Run the Flask Application
+
+`python app.py`
+
+### 4. Open in Browser
+
+Open:
+
+`http://127.0.0.1:5000`
+
+The application provides a web interface for dataset analysis, machine learning prediction, classification, and regression.
