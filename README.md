@@ -162,3 +162,21 @@ The prediction module accepts vehicle, network, and road parameters to generate 
 The system displays classification results from multiple machine learning models and the predicted vehicle spacing.
 
 ![Prediction Output](screenshots/prediction-output.png)
+
+---
+
+---
+
+## 👨‍💻 Author
+
+**Thanu (Ande Thanay Kumar)**
+
+- 💼 [LinkedIn](https://www.linkedin.com/in/a-thanay-3b5880293/)
+- 🐙 [GitHub](https://github.com/Thanaykumar-12)
+- 🌐 [Portfolio](https://thanay11.netlify.app/)
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
