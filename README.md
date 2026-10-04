@@ -1,3 +1,4 @@
+[![Python application](https://github.com/Thanaykumar-12/Hybrid-ML-Vehicle-Identification/actions/workflows/python-app.yml/badge.svg)](https://github.com/Thanaykumar-12/Hybrid-ML-Vehicle-Identification/actions/workflows/python-app.yml)
 # 🚗 Hybrid ML Vehicle Identification
 
 A hybrid machine learning system designed for fast and accurate vehicle identification in connected network environments. The project combines **Multilayer Perceptron (MLP)** and **Random Forest CART** techniques with data preprocessing, model evaluation, and a web-based interface.
